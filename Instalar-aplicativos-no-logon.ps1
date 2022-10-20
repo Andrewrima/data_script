@@ -1,4 +1,4 @@
-﻿Set-ExecutionPolicy RemoteSigned -Force -ErrorAction SilentlyContinue
+Set-ExecutionPolicy RemoteSigned -Force -ErrorAction SilentlyContinue
 
 # Criar pasta no C: se ela não existir
 if (-not(Test-Path C:\Temp\Instalaco)){
@@ -7,7 +7,7 @@ if (-not(Test-Path C:\Temp\Instalaco)){
 
 # Copiar programas para o computador local
 
-robocopy \\kapitalo.local\netlogon\Instalacao C:\Temp\Instalacao /E
+robocopy \\domain.local\netlogon\Instalacao C:\Temp\Instalacao /E
 
 # Desinstalar WebAdvisor se ele existir
 if (Test-Path "C:\Program Files\McAfee\WebAdvisor"){
@@ -27,6 +27,9 @@ if (Test-Path "C:\Program Files\Alienware\Alienware FXDisplay001 Components for 
     Start-Process "C:\Program Files\Alienware\Alienware FXDisplay001 Components for AWCC\uninstall.exe" -ArgumentList "/s" -wait
     rm -r "C:\Program Files\Alienware\Alienware FXDisplay001 Components for AWCC" -ErrorAction SilentlyContinue
 }
+
+# Criar variáveis de ambiente 
+[Environment]::SetEnvironmentVariable("PATH", $Env:PATH + ";C:\Python37\"+";C:\Python37\Scripts\", [EnvironmentVariableTarget]::Machine)
 
 # Instalar AdobeReader
 Start-Process "C:\Temp\Instalacao\AdobeReader\AdobeReader_v19820071.exe" -argumentlist "/sAll /rs /msi EULA_ACCEPT=YES" -wait
@@ -68,16 +71,13 @@ Start-Process "msiexec" -argumentlist "/i C:\Temp\Instalacao\PostgreODBC\Postgre
 Start-Process "C:\Temp\instalacao\Python\Python_v3.7.3.exe" -argumentlist "/quiet InstallAllUsers=1 DefaultAllUsersTargetDir=C:\Python37 PrependPath=1 /accepteula" -wait
 
 # Instalar bibliotecas do Python
-Start-Process "pip" -argumentlist "install bs4 certifi chardet idna joblib mariadb mysql-connector mysql-connector-python numpy pandas psycopg2 pymysql python-dateutil pytz pywin32 rsa scikit-learn scipy selenium six soupsieve sqlalchemy threadpoolctl urllib3 xlrd xlwings==0.20.5 xlsxwriter webdriver_manager lxml mss requests" -wait
+Start-Process "C:\Python37\Scripts\pip.exe" -argumentlist "install bs4 certifi chardet idna joblib mariadb mysql-connector mysql-connector-python numpy pandas psycopg2 pymysql python-dateutil pytz pywin32 rsa scikit-learn scipy selenium six soupsieve sqlalchemy threadpoolctl urllib3 xlrd xlwings==0.20.5 xlsxwriter webdriver_manager lxml mss requests" -wait
 
 # Instalar o xlwings no Excel
-Start-Process "xlwings" -ArgumentList "addin install" -Wait
+Start-Process "C:\Python37\Scripts\xlwings.exe" -argumentlist "addin install" -Wait
 
 # Instalar Silverlight
 Start-Process "C:\Temp\Instalacao\Silverlight\Silverlight.exe" -argumentlist "/q /accepteula" -wait
-
-# Instalar Trend Micro Apex One (Não instalar dessa forma, pois da problema ao registrar no servidor da TrendMicro)
-# Start-Process "msiexec" -argumentlist "/i C:\Temp\Instalacao\TrendMicroApexOne\SecurityAgent_x64.msi /quiet /norestart /lv C:\Temp\Instalacao\TrendMicroApexOne\SecurityAgentx64.log" -wait
 
 # Instalar Winrar
 Start-Process "C:\Temp\Instalacao\Winrar\Winrar_v611_x64.exe" -argumentlist "/S /accepteula" -wait
