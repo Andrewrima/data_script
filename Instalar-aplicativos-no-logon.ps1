@@ -82,7 +82,7 @@ Start-Process "C:\Temp\Instalacao\Silverlight\Silverlight.exe" -argumentlist "/q
 # Instalar Winrar
 Start-Process "C:\Temp\Instalacao\Winrar\Winrar_v611_x64.exe" -argumentlist "/S /accepteula" -wait
 
-# Instalar Teamviewer com configurações padrões
+# Instalar Teamviewer a partir de uma pasta na rede com configurações padrões
 Start-Process "msiexec" -argumentlist "/i \\local\TeamViewer_Full.msi" /qb SETTINGSFILE="\\local\Config.tvopt" -wait
 
 # Adicionar atalho do Dbeaver no Desktop
