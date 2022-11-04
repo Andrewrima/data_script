@@ -6,11 +6,13 @@
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
-$programas= @('Foxit Reader', 'PowerBI','Pycharm Community','R 4.2.2','RStudio','Refinitiv Messenger')
+$programas= @('Foxit Reader', 'PowerBI','Pycharm Community','R 4.2.2','RStudio','Refinitiv Messenger', 'Teamviewer', 'Desinstalar Office', 'Office 365', 'DBeaver', 
+'PostgreODBC x64', 'PostgreODBC x32')
+$computadores = Get-ADComputer -Filter * -SearchBase "CN=Computers,DC=Domain,DC=local" | select Name
 
 $Form                          = New-Object system.Windows.Forms.Form
 $Form.ClientSize               = New-Object System.Drawing.Point(357,65)
-$Form.text                     = "Remote Installation"
+$Form.text                     = "Remote Installer"
 $Form.TopMost                  = $false
 
 $button                          = New-Object system.Windows.Forms.Button
@@ -20,24 +22,29 @@ $button.height                   = 22
 $button.location                 = New-Object System.Drawing.Point(289,37)
 $button.Font                     = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
-$TextBox1                        = New-Object system.Windows.Forms.TextBox
-$TextBox1.multiline              = $false
-$TextBox1.text                   = "Computador"
-$TextBox1.width                  = 167
-$TextBox1.height                 = 20
-$TextBox1.location               = New-Object System.Drawing.Point(9,10)
-$TextBox1.Font                   = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
+$ComboBox2                       = New-Object system.Windows.Forms.ComboBox
+$ComboBox2.multiline              = $false
+$ComboBox2.text                   = "Computador"
+$ComboBox2.width                  = 167
+$ComboBox2.height                 = 20
+$ComboBox2.location               = New-Object System.Drawing.Point(9,10)
+$ComboBox2.Font                   = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
 $ComboBox1                       = New-Object system.Windows.Forms.ComboBox
-$ComboBox1.text                  = "Programas"
+$ComboBox1.text                  = "Programa"
 $ComboBox1.width                 = 167
 $ComboBox1.height                = 20
 $ComboBox1.location              = New-Object System.Drawing.Point(184,10)
 $ComboBox1.Font                  = New-Object System.Drawing.Font('Microsoft Sans Serif',10)
 
-foreach($programa in $programas)
+foreach($programa in $programas | sort name)
 {
   $ComboBox1.Items.add($programa)
+}
+
+foreach($computador in $computadores | sort name)
+{
+  $ComboBox2.Items.add($computador.Name)
 }
 
 $Label1                          = New-Object system.Windows.Forms.Label
@@ -55,16 +62,128 @@ $stream          = [System.IO.MemoryStream]::new($iconBytes, 0, $iconBytes.Lengt
 $Form.Icon       = [System.Drawing.Icon]::FromHandle(([System.Drawing.Bitmap]::new($stream).GetHIcon()))
 $stream.Dispose()
 
-$Form.Controls.Add($ComboBox1)
+#$Form.Controls.Add($ComboBox1)
 
-$Form.controls.AddRange(@($button,$TextBox1,$ComboBox1,$Label1))
+$Form.controls.AddRange(@($button,$ComboBox2,$ComboBox1,$Label1))
 
 $button.Add_Click({
+
+    # Instalar o PostgreODBC x64
+    if($ComboBox1.Text -eq 'PostgreODBC x64'){
+        try{$file = "\\Server\PostgreODBC\PostgreODBC_v09.00.0101_x64.msi"
+            $computerName = $ComboBox2.Text
+            $Label1.text = "Instalando PostgreODBC x64..."
+
+            Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\PostgreODBC_v09.00.0101_x64.msi"
+
+            Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+            Invoke-Command -ComputerName $computerName -ScriptBlock { 
+            Start-Process msiexec -ArgumentList '/i c:\windows\temp\PostgreODBC_v09.00.0101_x64.msi /qn /quiet' -Wait
+            }
+            Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+            }
+
+        catch{write-host "Erro ao instalar o PostgreODBC x64" -ForegroundColor Red}
+        
+        Remove-Item "c:\windows\temp\PostgreODBC_v09.00.0101_x64.msi" -Force
+        $Label1.text = "PostgreODBC x64 Instalado!"
+        }
+
+    # Instalar o PostgreODBC x32
+    if($ComboBox1.Text -eq 'PostgreODBC x32'){
+        try{$file = "\\Server\PostgreODBC\PostgreODBC_v08.04.0200_x32.msi"
+            $computerName = $ComboBox2.Text
+            $Label1.text = "Instalando PostgreODBC x32..."
+
+            Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\PostgreODBC_v08.04.0200_x32.msi"
+
+            Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+            Invoke-Command -ComputerName $computerName -ScriptBlock { 
+            Start-Process msiexec -ArgumentList '/i c:\windows\temp\PostgreODBC_v08.04.0200_x32.msi /qn /quiet' -Wait
+            }
+            Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+            }
+
+        catch{write-host "Erro ao instalar o PostgreODBC x32" -ForegroundColor Red}
+        
+        Remove-Item "c:\windows\temp\PostgreODBC_v08.04.0200_x32.msi" -Force
+        $Label1.text = "PostgreODBC x32 Instalado!"
+        }
+
+    # Remove todos os office
+    if($ComboBox1.Text -eq 'Desinstalar Office'){
+        try{$file = "\\Server\Office2021Apps\Office2021Apps.exe"
+            $file2 = "\\Server\Office2021Apps\Remove.xml"
+            $computerName = $ComboBox2.Text
+            $Label1.text = "Desinstalando Office..."
+
+            Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\Office2021Apps.exe"
+            Copy-Item -Path $file2 -Destination "\\$($computername)\c$\windows\temp\Remove.xml"
+
+            Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+            Invoke-Command -ComputerName $computerName -ScriptBlock { 
+            Start-Process c:\windows\temp\Office2021Apps.exe -ArgumentList '/configure c:\windows\temp\Remove.xml' -Wait
+            }
+            Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+            }
+
+        catch{write-host "Erro ao desinstalar o Office" -ForegroundColor Red}
+        
+        Remove-Item "c:\windows\temp\Office2021Apps.exe" -Force
+        Remove-Item "c:\windows\temp\Remove.xml" -Force
+        $Label1.text = "Office desinstalado!"
+        }
+
+    # Instalar Office 365
+    if($ComboBox1.Text -eq 'Office 365'){
+        try{$file = "\\Server\Office2021Apps\Office2021Apps.exe"
+            $file2 = "\\Server\Office2021Apps\Configuracao.xml"
+            $computerName = $ComboBox2.Text
+            $Label1.text = "Instalando Office 365..."
+
+            Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\Office2021Apps.exe"
+            Copy-Item -Path $file2 -Destination "\\$($computername)\c$\windows\temp\Configuracao.xml"
+
+            Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+            Invoke-Command -ComputerName $computerName -ScriptBlock { 
+            Start-Process c:\windows\temp\Office2021Apps.exe -ArgumentList '/configure c:\windows\temp\Configuracao.xml' -Wait
+            }
+            Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+            }
+
+        catch{write-host "Erro ao Instalar o Office 365." -ForegroundColor Red}
+        
+        Remove-Item "c:\windows\temp\Office2021Apps.exe" -Force
+        Remove-Item "c:\windows\temp\Remove.xml" -Force
+        $Label1.text = "Office 365 Instalado!"
+        }
+
+    # Instalar DBeaver
+    if($ComboBox1.Text -eq 'DBeaver'){
+        try{$file = "\\Server\_Dbeaver\Dbeaver CE v6.0.5.exe"
+            $computerName = $ComboBox2.Text
+            $Label1.text = "Instalando DBeaver..."
+
+            Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
+
+            Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+            Invoke-Command -ComputerName $computerName -ScriptBlock { 
+            Start-Process c:\windows\temp\installer.exe -ArgumentList '/allusers /S' -Wait
+            }
+            Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+            }
+
+        catch{write-host "Erro ao Instalar o DBeaver." -ForegroundColor Red}
+        
+        Remove-Item "c:\windows\temp\installer.exe" -Force
+        $Label1.text = "DBeaver Instalado!"
+        }
+
     
     # Instala o Foxit Reader da Rede
     if($ComboBox1.Text -eq 'Foxit Reader'){
-        try{$file = "\\FolderPath\Foxit Reader\Foxit Reader v722.0929.exe"
-            $computerName = $TextBox1.Text
+        try{$file = "\\Server\Foxit Reader\Foxit Reader v722.0929.exe"
+            $computerName = $ComboBox2.Text
             $Label1.text = "Instalando Foxit..."
 
             Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
@@ -84,8 +203,8 @@ $button.Add_Click({
 
     # Instala o Pycharm Community da Rede
     if($ComboBox1.Text -eq 'Pycharm Community'){
-        try{$file = "\\FolderPath\PyCharm\Pycharm Community v2022.2.3.exe"
-            $computerName = $TextBox1.Text
+        try{$file = "\\Server\PyCharm\Pycharm Community v2022.2.3.exe"
+            $computerName = $ComboBox2.Text
             $Label1.text = "Instalando Pycharm Community..."
 
             Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
@@ -105,8 +224,8 @@ $button.Add_Click({
 
     # Instala o R 4.2.2 da Rede
     if($ComboBox1.Text -eq 'R 4.2.2'){
-        try{$file = "\\FolderPath\RStudio\R 4.2.2.exe"
-            $computerName = $TextBox1.Text
+        try{$file = "\\Server\RStudio\R 4.2.2.exe"
+            $computerName = $ComboBox2.Text
             $Label1.text = "Instalando R 4.2.2..."
 
             Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
@@ -126,8 +245,8 @@ $button.Add_Click({
 
     # Instala o RStudio da Rede
     if($ComboBox1.Text -eq 'RStudio'){
-        try{$file = "\\FolderPath\RStudio\RStudio 2022.07.2.exe"
-            $computerName = $TextBox1.Text
+        try{$file = "\\Server\RStudio\RStudio 2022.07.2.exe"
+            $computerName = $ComboBox2.Text
             $Label1.text = "Instalando RStudio..."
 
             Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
@@ -147,8 +266,8 @@ $button.Add_Click({
 
     # Instala o Refinitiv da Rede
     if($ComboBox1.Text -eq 'Refinitiv Messenger'){
-        try{$file = "\\FolderPath\Refinitiv Messenger\Refinitiv Messenger v1.11.385.exe"
-            $computerName = $TextBox1.Text
+        try{$file = "\\Server\Refinitiv Messenger\Refinitiv Messenger v1.11.385.exe"
+            $computerName = $ComboBox2.Text
             $Label1.text = "Instalando Refinitiv Messenger..."
 
             Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
@@ -166,10 +285,35 @@ $button.Add_Click({
         $Label1.text = "Refinitiv Messenger instalado!"
         }
 
+    # Instala o Teamviewer da Rede
+    if($ComboBox1.Text -eq 'Teamviewer'){
+        try{$file = "\\Server\Teamviewer\Teamviewer.msi"
+            $file2 = "\\Server\Teamviewer\Config.tvopt"
+            
+            $computerName = $ComboBox2.Text
+            $Label1.text = "Instalando Teamviewer..."
+
+            Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\Teamviewer.msi"
+            Copy-Item -Path $file2 -Destination "\\$($computername)\c$\windows\temp\Config.tvopt"
+
+            Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+            Invoke-Command -ComputerName $computerName -ScriptBlock { 
+            Start-Process msiexec.exe -ArgumentList '/i "c:\windows\temp\Teamviewer.msi" /qb SETTINGSFILE="c:\windows\temp\Config.tvopt"' -Wait
+            }
+            Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+            }
+
+        catch{write-host "Erro ao instalar o Teamviewer" -ForegroundColor Red}
+        
+        Remove-Item "c:\windows\temp\Teamviewer.msi" -Force
+        Remove-Item "c:\windows\temp\Config.tvopt" -Force
+        $Label1.text = "Teamviewer instalado!"
+        }
+
     # Instala o PowerBI da Microsoft Store
     if($ComboBox1.Text -eq 'PowerBI'){
-        try{$file = "\\FolderPath\Refinitiv Messenger\Refinitiv Messenger v1.11.385.exe"
-            $computerName = $TextBox1.Text
+        try{$file = "\\Server\Refinitiv Messenger\Refinitiv Messenger v1.11.385.exe"
+            $computerName = $ComboBox2.Text
             $Label1.text = "Instalando PowerBI..."
 
             Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
