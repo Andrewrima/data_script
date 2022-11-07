@@ -1,3 +1,15 @@
+######################################################################################################################################
+#                                                                                                                                    #
+#   Requeriments: Rsat.ActiveDirectory.DS-LDS.Tools                                                                                  #
+#                                                                                                                                    #
+#   How to install:                                                                                                                  #
+#   set-itemproperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name "UseWUServer" -value "0" -Force          #
+#   start-process Add-WindowsCapability -ArgumentList "–online –Name Rsat.ActiveDirectory*" -Wait                                    #
+#   set-itemproperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name "UseWUServer" -value "1" -Force          #
+#                                                                                                                                    #
+#                                                                                                                                    #
+######################################################################################################################################
+
 <# 
 .NAME
     Form Install
