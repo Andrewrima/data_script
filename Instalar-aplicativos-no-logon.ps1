@@ -67,8 +67,9 @@ ForEach ($programa in $programas.GetEnumerator() | sort Value){
     Write-Progress -Activity 'Instalando programas...' -Status "$($programa.Value)" -CurrentOperation "$([math]::Round($progresso)) % instalado..." -PercentComplete (($counter / $programas.count) * 100)
     Start-Sleep -Milliseconds 250
     try{Invoke-Expression $programa.Name -ErrorAction Stop
-    Write-Host "$($programa.Value) instalado!" -BackgroundColor Green -ForegroundColor black}
-    catch {write-host "Erro ao instalar o programa $($programa.Value)" -ForegroundColor Red | Out-File "C:\Temp\Instalacao\logfile.txt" -append}  
+        Write-Host "$($programa.Value) instalado!" -BackgroundColor Green -ForegroundColor black}
+    catch {$ErrorMessage = $_.Exception.Message
+        Write-Host $ErrorMessage "$($programa.Value)" -ForegroundColor Red | Out-File "C:\Temp\Instalacao\logfile.txt" -append}  
 }
 $counter = $null
 $programa = $null
