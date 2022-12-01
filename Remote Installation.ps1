@@ -54,11 +54,30 @@ foreach($programa in $programas | sort name)
   $ComboBox1.Items.add($programa)
 }
 
+<#
+ Pega todos os computadores do AD com base na nomenclatura da hashtable e Mostra a Descrição dos computadores
+ #>
+
+$nomeclatura = @('WS10', 'WS11', 'NT10', 'NT11')
+
+
+for ($i=0;$i -lt $nomeclatura.Length; $i++ | sort){
+    $computadores= (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? {$_.Name -match $nomeclatura[$i]}).Description
+    foreach($computador in $computadores | sort)
+        {
+        $ComboBox2.Items.add($computador)
+        }
+}
+
+
+<#
+ Pega todos os computadores do AD
+
 foreach($computador in $computadores | sort name)
 {
   $ComboBox2.Items.add($computador.Name)
 }
-
+#>
 $Label1                          = New-Object system.Windows.Forms.Label
 $Label1.text                     = "Status"
 $Label1.AutoSize                 = $true
