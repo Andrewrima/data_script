@@ -85,6 +85,7 @@ $button.Add_Click({
         try{$file = "\\Server\PostgreODBC\PostgreODBC_v09.00.0101_x64.msi"
             $computerName = $ComboBox2.Text
             $Label1.text = "Instalando PostgreODBC x64..."
+            $Label1.ForeColor = "Blue"
 
             Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\PostgreODBC_v09.00.0101_x64.msi"
 
@@ -95,10 +96,12 @@ $button.Add_Click({
             Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
             }
 
-        catch{write-host "Erro ao instalar o PostgreODBC x64" -ForegroundColor Red}
+        catch{write-host "Erro ao instalar o PostgreODBC x64"
+        $Label1.ForeColor = "Red"}
         
         Remove-Item "c:\windows\temp\PostgreODBC_v09.00.0101_x64.msi" -Force
         $Label1.text = "PostgreODBC x64 Instalado!"
+        $Label1.ForeColor = "Green"
         }
 
     # Instalar o PostgreODBC x32
@@ -106,6 +109,7 @@ $button.Add_Click({
         try{$file = "\\Server\PostgreODBC\PostgreODBC_v08.04.0200_x32.msi"
             $computerName = $ComboBox2.Text
             $Label1.text = "Instalando PostgreODBC x32..."
+            $Label1.ForeColor = "Blue"
 
             Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\PostgreODBC_v08.04.0200_x32.msi"
 
@@ -116,10 +120,12 @@ $button.Add_Click({
             Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
             }
 
-        catch{write-host "Erro ao instalar o PostgreODBC x32" -ForegroundColor Red}
+        catch{write-host "Erro ao instalar o PostgreODBC x32"
+        $Label1.ForeColor = "Red"}
         
         Remove-Item "c:\windows\temp\PostgreODBC_v08.04.0200_x32.msi" -Force
         $Label1.text = "PostgreODBC x32 Instalado!"
+        $Label1.ForeColor = "Green"
         }
 
     # Remove todos os office
@@ -128,6 +134,7 @@ $button.Add_Click({
             $file2 = "\\Server\Office2021Apps\Remove.xml"
             $computerName = $ComboBox2.Text
             $Label1.text = "Desinstalando Office..."
+            $Label1.ForeColor = "Blue"
 
             Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\Office2021Apps.exe"
             Copy-Item -Path $file2 -Destination "\\$($computername)\c$\windows\temp\Remove.xml"
@@ -139,11 +146,13 @@ $button.Add_Click({
             Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
             }
 
-        catch{write-host "Erro ao desinstalar o Office" -ForegroundColor Red}
+        catch{write-host "Erro ao desinstalar o Office"
+        $Label1.ForeColor = "Red"}
         
         Remove-Item "c:\windows\temp\Office2021Apps.exe" -Force
         Remove-Item "c:\windows\temp\Remove.xml" -Force
         $Label1.text = "Office desinstalado!"
+        $Label1.ForeColor = "Green"
         }
 
     # Instalar Office 365
@@ -152,6 +161,7 @@ $button.Add_Click({
             $file2 = "\\Server\Office2021Apps\Configuracao.xml"
             $computerName = $ComboBox2.Text
             $Label1.text = "Instalando Office 365..."
+            $Label1.ForeColor = "Blue"
 
             Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\Office2021Apps.exe"
             Copy-Item -Path $file2 -Destination "\\$($computername)\c$\windows\temp\Configuracao.xml"
@@ -163,11 +173,13 @@ $button.Add_Click({
             Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
             }
 
-        catch{write-host "Erro ao Instalar o Office 365." -ForegroundColor Red}
+        catch{write-host "Erro ao Instalar o Office 365."
+        $Label1.ForeColor = "Red"}
         
         Remove-Item "c:\windows\temp\Office2021Apps.exe" -Force
         Remove-Item "c:\windows\temp\Remove.xml" -Force
         $Label1.text = "Office 365 Instalado!"
+        $Label1.ForeColor = "Green"
         }
 
     # Instalar DBeaver
@@ -175,6 +187,7 @@ $button.Add_Click({
         try{$file = "\\Server\_Dbeaver\Dbeaver CE v6.0.5.exe"
             $computerName = $ComboBox2.Text
             $Label1.text = "Instalando DBeaver..."
+            $Label1.ForeColor = "Blue"
 
             Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
 
@@ -185,10 +198,12 @@ $button.Add_Click({
             Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
             }
 
-        catch{write-host "Erro ao Instalar o DBeaver." -ForegroundColor Red}
+        catch{write-host "Erro ao Instalar o DBeaver." 
+        $Label1.ForeColor = "Red"}
         
         Remove-Item "c:\windows\temp\installer.exe" -Force
         $Label1.text = "DBeaver Instalado!"
+        $Label1.ForeColor = "Green"
         }
 
     
@@ -197,6 +212,7 @@ $button.Add_Click({
         try{$file = "\\Server\Foxit Reader\Foxit Reader v722.0929.exe"
             $computerName = $ComboBox2.Text
             $Label1.text = "Instalando Foxit..."
+            $Label1.ForeColor = "Blue"
 
             Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
 
@@ -207,10 +223,12 @@ $button.Add_Click({
             Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
             }
 
-        catch{write-host "Erro ao instalar o Foxit Reader" -ForegroundColor Red}
+        catch{write-host "Erro ao instalar o Foxit Reader"
+        $Label1.ForeColor = "Red"}
         
         Remove-Item "c:\windows\temp\installer.exe" -Force
         $Label1.text = "Foxit instalado!"
+        $Label1.ForeColor = "Green"
         }
 
     # Instala o Pycharm Community da Rede
@@ -218,6 +236,7 @@ $button.Add_Click({
         try{$file = "\\Server\PyCharm\Pycharm Community v2022.2.3.exe"
             $computerName = $ComboBox2.Text
             $Label1.text = "Instalando Pycharm Community..."
+            $Label1.ForeColor = "Blue"
 
             Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
 
@@ -228,10 +247,12 @@ $button.Add_Click({
             Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
             }
 
-        catch{write-host "Erro ao instalar o Pycharm Community" -ForegroundColor Red}
+        catch{write-host "Erro ao instalar o Pycharm Community"
+        $Label1.ForeColor = "Red"}
         
         Remove-Item "c:\windows\temp\installer.exe" -Force
         $Label1.text = "Pycharm Community instalado!"
+        $Label1.ForeColor = "Green"
         }
 
     # Instala o R 4.2.2 da Rede
@@ -239,6 +260,7 @@ $button.Add_Click({
         try{$file = "\\Server\RStudio\R 4.2.2.exe"
             $computerName = $ComboBox2.Text
             $Label1.text = "Instalando R 4.2.2..."
+            $Label1.ForeColor = "Blue"
 
             Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
 
@@ -249,10 +271,12 @@ $button.Add_Click({
             Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
             }
 
-        catch{write-host "Erro ao instalar o R 4.2.2" -ForegroundColor Red}
+        catch{write-host "Erro ao instalar o R 4.2.2"
+        $Label1.ForeColor = "Red"}
         
         Remove-Item "c:\windows\temp\installer.exe" -Force
         $Label1.text = "R 4.2.2 instalado!"
+        $Label1.ForeColor = "Green"
         }
 
     # Instala o RStudio da Rede
@@ -260,6 +284,7 @@ $button.Add_Click({
         try{$file = "\\Server\RStudio\RStudio 2022.07.2.exe"
             $computerName = $ComboBox2.Text
             $Label1.text = "Instalando RStudio..."
+            $Label1.ForeColor = "Blue"
 
             Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
 
@@ -270,10 +295,12 @@ $button.Add_Click({
             Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
             }
 
-        catch{write-host "Erro ao instalar o RStudio" -ForegroundColor Red}
+        catch{write-host "Erro ao instalar o RStudio"
+        $Label1.ForeColor = "Red"}
         
         Remove-Item "c:\windows\temp\installer.exe" -Force
         $Label1.text = "RStudio instalado!"
+        $Label1.ForeColor = "Green"
         }
 
     # Instala o Refinitiv da Rede
@@ -281,6 +308,7 @@ $button.Add_Click({
         try{$file = "\\Server\Refinitiv Messenger\Refinitiv Messenger v1.11.385.exe"
             $computerName = $ComboBox2.Text
             $Label1.text = "Instalando Refinitiv Messenger..."
+            $Label1.ForeColor = "Blue"
 
             Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
 
@@ -291,10 +319,12 @@ $button.Add_Click({
             Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
             }
 
-        catch{write-host "Erro ao instalar o Refinitiv Messenger" -ForegroundColor Red}
+        catch{write-host "Erro ao instalar o Refinitiv Messenger"
+        $Label1.ForeColor = "Red"}
         
         Remove-Item "c:\windows\temp\installer.exe" -Force
         $Label1.text = "Refinitiv Messenger instalado!"
+        $Label1.ForeColor = "Green"
         }
 
     # Instala o Teamviewer da Rede
@@ -304,6 +334,7 @@ $button.Add_Click({
             
             $computerName = $ComboBox2.Text
             $Label1.text = "Instalando Teamviewer..."
+            $Label1.ForeColor = "Blue"
 
             Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\Teamviewer.msi"
             Copy-Item -Path $file2 -Destination "\\$($computername)\c$\windows\temp\Config.tvopt"
@@ -315,11 +346,13 @@ $button.Add_Click({
             Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
             }
 
-        catch{write-host "Erro ao instalar o Teamviewer" -ForegroundColor Red}
+        catch{write-host "Erro ao instalar o Teamviewer"
+        $Label1.ForeColor = "Red"}
         
         Remove-Item "c:\windows\temp\Teamviewer.msi" -Force
         Remove-Item "c:\windows\temp\Config.tvopt" -Force
         $Label1.text = "Teamviewer instalado!"
+        $Label1.ForeColor = "Green"
         }
 
     # Instala o PowerBI da Microsoft Store
@@ -327,6 +360,7 @@ $button.Add_Click({
         try{$file = "\\Server\Refinitiv Messenger\Refinitiv Messenger v1.11.385.exe"
             $computerName = $ComboBox2.Text
             $Label1.text = "Instalando PowerBI..."
+            $Label1.ForeColor = "Blue"
 
             Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
             Invoke-Command -ComputerName $computerName -ScriptBlock { 
@@ -335,9 +369,11 @@ $button.Add_Click({
             Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
             }
 
-        catch{write-host "Erro ao instalar o PowerBI" -ForegroundColor Red}
+        catch{write-host "Erro ao instalar o PowerBI"
+        $Label1.ForeColor = "Red"}
         
         $Label1.text = "PowerBI instalado!"
+        $Label1.ForeColor = "Green"
         }
 
 })
