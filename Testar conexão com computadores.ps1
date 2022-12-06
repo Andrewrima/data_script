@@ -11,14 +11,22 @@
 ######################################################################################################################################
 
 
-$computadores = @{
-    "NT10BKP04" = "Andrew Machado"
-    "Computador2" = "Usuário 2"
+$computadores = Get-ADComputer -Filter * -Properties Name, Description | select Name, Description
+
+foreach ($computador in $computadores) {
+    try{
+        if(Test-Connection -ComputerName $computador.Name -Delay 10 -Count 1 -ErrorAction Stop)
+            {
+            if($computador.Description -eq $null){Write-Host "Conexão Ok com $($computador.Name)"}
+            else{Write-Host "Conexão Ok com $($computador.Description)"}
+            }
+            }
+    
+    catch{
+          if($computador.Description -eq $null){
+            Write-Host "$($_.Exception.Message): $($computador.Name)" -ForegroundColor Red
+            }
+          else{Write-Host "$($_.Exception.Message): $($computador.Description)" -ForegroundColor Red}
+    
 }
-
-
-foreach ($computador in $computadores.GetEnumerator()) {
-    Get-ADComputer -Filter * -Properties Name, Description | Where-Object {($_.Name -eq $computador.Name)} | 
-    Set-ADComputer -Description $computador.Value |
-    Get-ADComputer -Filter * -Properties Name, Description | Where-Object {($_.Name -eq $computador.Name)} | select Name, Description
 }
