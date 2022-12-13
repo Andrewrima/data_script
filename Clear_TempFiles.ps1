@@ -130,7 +130,7 @@ foreach ($computer in $desktopsAD.GetEnumerator()) {
    
                 foreach ($path in $paths) {
                     If ((Test-Path -Path "$($profilePath)\$($user)\$($path)") -eq $true) {
-                        Get-ChildItem -Path "$($profilePath)\$($user)\$($path)" -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+                        Get-ChildItem -Path "$($profilePath)\$($user)\$($path)" -Exclude "TableauTemp" -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
                     }
                 }
                 $count++

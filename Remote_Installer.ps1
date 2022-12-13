@@ -99,7 +99,7 @@ $button.Add_Click({
                 $Label1.text = "Instalando PostgreODBC x64..."
                 $Label1.ForeColor = "Blue"
 
-                Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\PostgreODBC_v09.00.0101_x64.msi"
+                Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\PostgreODBC_v09.00.0101_x64.msi" -Force
 
                 Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
                 Invoke-Command -ComputerName $computerName -ScriptBlock { 
@@ -113,9 +113,11 @@ $button.Add_Click({
                 $Label1.ForeColor = "Red"
             }
         
-            Remove-Item "c:\windows\temp\PostgreODBC_v09.00.0101_x64.msi" -Force
-            $Label1.text = "PostgreODBC x64 Instalado!"
-            $Label1.ForeColor = "Green"
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files\psqlODBC") {
+                $Label1.text = "PostgreODBC x64 Instalado!"
+                $Label1.ForeColor = "Green"
+            }
         }
 
         # Instalar Bibliotecas do Python
@@ -166,9 +168,12 @@ $button.Add_Click({
                 $Label1.ForeColor = "Red"
             }
         
-            Remove-Item "c:\windows\temp\PostgreODBC_v08.04.0200_x32.msi" -Force
-            $Label1.text = "PostgreODBC x32 Instalado!"
-            $Label1.ForeColor = "Green"
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files (x86)\psqlODBC") {
+                $Label1.text = "PostgreODBC x32 Instalado!"
+                $Label1.ForeColor = "Green"
+            }
+
         }
 
         # Desinstalar office 365
@@ -232,10 +237,12 @@ $button.Add_Click({
                 $Label1.ForeColor = "Red"
             }
         
-            Remove-Item "c:\windows\temp\Office2021Apps.exe" -Force
-            Remove-Item "c:\windows\temp\Configuracao.xml" -Force
-            $Label1.text = "Office 365 Instalado!"
-            $Label1.ForeColor = "Green"
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files (x86)\Microsoft Office\root\Office16") {
+                $Label1.text = "Office 365 Instalado!"
+                $Label1.ForeColor = "Green"
+            }
+
         }
 
         # Instalar Office 365 x64
@@ -266,10 +273,12 @@ $button.Add_Click({
                 $Label1.ForeColor = "Red"
             }
         
-            Remove-Item "c:\windows\temp\Office2021Apps.exe" -Force
-            Remove-Item "c:\windows\temp\Configuracao_x64.xml" -Force
-            $Label1.text = "Office 365 x64 Instalado!"
-            $Label1.ForeColor = "Green"
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files\Microsoft Office\root\Office16") {
+                $Label1.text = "Office 365 x64 Instalado!"
+                $Label1.ForeColor = "Green"
+            }
+
         }
 
         # Instalar Office 16 x32
@@ -298,9 +307,12 @@ $button.Add_Click({
                 $Label1.ForeColor = "Red"
             }
         
-            Remove-Item -Recurse "C:\windows\temp\x32" -Force
-            $Label1.text = "Office 16 x32 Instalado!"
-            $Label1.ForeColor = "Green"
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files (x86)\Microsoft Office\Office16") {
+                $Label1.text = "Office 16 x32 Instalado!"
+                $Label1.ForeColor = "Green"
+            }
+
         }
 
         # Instalar Office 16 x64
@@ -329,9 +341,11 @@ $button.Add_Click({
                 $Label1.ForeColor = "Red"
             }
         
-            Remove-Item -Recurse "C:\windows\temp\x64" -Force
-            $Label1.text = "Office 16 x64 Instalado!"
-            $Label1.ForeColor = "Green"
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files\Microsoft Office\Office16") {
+                $Label1.text = "Office 16 x64 Instalado!"
+                $Label1.ForeColor = "Green"
+            }
         }
 
         # Instalar DBeaver
@@ -357,9 +371,11 @@ $button.Add_Click({
                 $Label1.ForeColor = "Red"
             }
         
-            Remove-Item "c:\windows\temp\installer.exe" -Force
-            $Label1.text = "DBeaver Instalado!"
-            $Label1.ForeColor = "Green"
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files\DBeaver") {
+                $Label1.text = "DBeaver Instalado!"
+                $Label1.ForeColor = "Green"
+            }
         }
 
         # Instala o Foxit Reader da Rede
@@ -385,9 +401,11 @@ $button.Add_Click({
                 $Label1.ForeColor = "Red"
             }
         
-            Remove-Item "c:\windows\temp\installer.exe" -Force
-            $Label1.text = "Foxit instalado!"
-            $Label1.ForeColor = "Green"
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files (x86)\Foxit Software") {
+                $Label1.text = "Foxit instalado!"
+                $Label1.ForeColor = "Green"
+            }
         }
 
         # Instala o Pycharm Community da Rede
@@ -413,9 +431,11 @@ $button.Add_Click({
                 $Label1.ForeColor = "Red"
             }
         
-            Remove-Item "c:\windows\temp\installer.exe" -Force
-            $Label1.text = "Pycharm Community instalado!"
-            $Label1.ForeColor = "Green"
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files\JetBrains") {
+                $Label1.text = "Pycharm Community instalado!"
+                $Label1.ForeColor = "Green"
+            }
         }
 
         # Instala o R 4.2.2 da Rede
@@ -441,9 +461,11 @@ $button.Add_Click({
                 $Label1.ForeColor = "Red"
             }
         
-            Remove-Item "c:\windows\temp\installer.exe" -Force
-            $Label1.text = "R 4.2.2 instalado!"
-            $Label1.ForeColor = "Green"
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files\R") {
+                $Label1.text = "R 4.2.2 instalado!"
+                $Label1.ForeColor = "Green"
+            }
         }
 
         # Instala o RStudio da Rede
@@ -469,15 +491,17 @@ $button.Add_Click({
                 $Label1.ForeColor = "Red"
             }
         
-            Remove-Item "c:\windows\temp\installer.exe" -Force
-            $Label1.text = "RStudio instalado!"
-            $Label1.ForeColor = "Green"
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files\RStudio") {
+                $Label1.text = "RStudio instalado!"
+                $Label1.ForeColor = "Green"
+            }
         }
 
         # Instala o Refinitiv da Rede
         if ($ComboBox1.Text -eq 'Refinitiv Messenger') {
             try {
-                $file = "\\FSKPTL01\TI\Disks\Refinitiv Messenger\Refinitiv Messenger v1.11.385.exe"
+                $file = "\\Fskptl01\ti\Disks\_Software Traders\Refinitiv Messenger\Refinitiv Messenger v1.11.385.exe"
                 $descricao = $ComboBox2.Text
                 $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
                 $Label1.text = "Instalando Refinitiv Messenger..."
@@ -525,9 +549,11 @@ $button.Add_Click({
                 $Label1.ForeColor = "Red"
             }
         
-            Remove-Item "c:\windows\temp\installer.exe" -Force
-            $Label1.text = "Visual Studio Code instalado!"
-            $Label1.ForeColor = "Green"
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files\Visual Studio Code") {
+                $Label1.text = "Visual Studio Code instalado!"
+                $Label1.ForeColor = "Green"
+            }
         }
 
 
@@ -582,10 +608,11 @@ $button.Add_Click({
                 $Label1.ForeColor = "Red"
             }
         
-            Remove-Item "c:\windows\temp\Teamviewer.msi" -Force
-            Remove-Item "c:\windows\temp\Config.tvopt" -Force
-            $Label1.text = "Teamviewer instalado!"
-            $Label1.ForeColor = "Green"
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files\TeamViewer") {
+                $Label1.text = "Teamviewer instalado!"
+                $Label1.ForeColor = "Green"
+            }
         }
 		
     })
