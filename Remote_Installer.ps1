@@ -18,7 +18,7 @@
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
-$programas = @('Foxit Reader', 'Bibliotecas Python', 'Visual Studio Code', 'PowerBI', 'Pycharm Community', 'R 4.2.2', 'RStudio', 'Refinitiv Messenger', 'Teamviewer', 'Desinstalar Office 365', 'Office 16 x32', 'Office 16 x64', 'Office 365 x32', 'DBeaver', 'Office 365 x64', 'PostgreODBC x64', 'PostgreODBC x32')
+$programas = @('Foxit Reader', 'Bibliotecas Python', 'Visual Studio Code', 'Chrome Driver', 'PowerBI', 'Pycharm Community', 'R 4.2.2', 'RStudio', 'Refinitiv Messenger', 'Teamviewer', 'Desinstalar Office 365', 'Office 16 x32', 'Office 16 x64', 'Office 365 x32', 'DBeaver', 'Office 365 x64', 'PostgreODBC x64', 'PostgreODBC x32')
 #$computadores = Get-ADComputer -Filter * -SearchBase "CN=Computers,DC=kapitalo,DC=local" | select Name
 
 $Form = New-Object system.Windows.Forms.Form
@@ -118,6 +118,41 @@ $button.Add_Click({
                 $Label1.text = "PostgreODBC x64 Instalado!"
                 $Label1.ForeColor = "Green"
             }
+        }
+
+        #Atualizar Chrome Drive
+        if ($ComboBox1.Text -eq 'Chrome Driver') {
+            try {
+                $descricao = $ComboBox2.Text
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
+                $Label1.text = "Atualizando Chrome Driver..."
+                $Label1.ForeColor = "Blue"
+
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+                Invoke-Command -ComputerName $computerName -ScriptBlock { 
+                    if (-not(Test-Path -Path C:\temp)) { mkdir C:\temp }
+                    $ChromeVersion = $(Get-Package -Name "Google Chrome").Version
+
+                    $ChromeVersion = $ChromeVersion.Substring(0, $ChromeVersion.LastIndexOf("."))
+
+                    $ChromeDriverVersion = (Invoke-WebRequest -UseBasicParsing "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$ChromeVersion").Content
+
+                    Invoke-WebRequest "https://chromedriver.storage.googleapis.com/$ChromeDriverVersion/chromedriver_win32.zip" -OutFile "C:\temp\chrome.zip"
+                    Expand-Archive "C:\temp\chrome.zip" -DestinationPath "C:\temp" -Force
+                    Copy-Item "C:\temp\chromedriver.exe" -Destination "C:\Python37" -Force -ErrorAction SilentlyContinue
+                    Copy-Item "C:\temp\chromedriver.exe" -Destination "C:\Python39" -Force -ErrorAction SilentlyContinue
+
+                }
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+            }
+
+            catch {
+                $Label1.text = "Erro ao Atualizar o Chrome Driver" 
+                $Label1.ForeColor = "Red"
+            }
+        
+            $Label1.text = "Chrome Driver Atualizado!"
+            $Label1.ForeColor = "Green"
         }
 
         # Instalar Bibliotecas do Python
