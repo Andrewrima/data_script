@@ -1,14 +1,24 @@
-﻿######################################################################################################################################
-#                                                                                                                                    #
-#   Requeriments: Rsat.ActiveDirectory.DS-LDS.Tools                                                                                  #
-#                                                                                                                                    #
-#   How to install:                                                                                                                  #
-#   set-itemproperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name "UseWUServer" -value "0" -Force          #
-#   start-process Add-WindowsCapability -ArgumentList "–online –Name Rsat.ActiveDirectory*" -Wait                                    #
-#   set-itemproperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name "UseWUServer" -value "1" -Force          #
-#                                                                                                                                    #
-#                                                                                                                                    #
-######################################################################################################################################
+﻿
+
+
+
+##################################################################################################################################################
+#                                                                                                                                                #
+#   Requeriments: Rsat.ActiveDirectory.DS-LDS.Tools                                                                                              #
+#                                                                                                                                                #
+#   How to install:                                                                                                                              #
+#   1) Set-itemproperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name "UseWUServer" -value "0" -Force                   #
+#   2) Get-WindowsCapability –online –Name Rsat.ActiveDirectory*                                                                                 #
+#   3) Add-WindowsCapability –online –Name Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0 (Versão verificado no passo 2)                           #
+#                                                                                                                                                #
+#      Se aparecer o erro "Falha em Add-WindowsCapability. Código do erro = 0x800f0954":                                                         #
+#      Executar "gpedit.msc" no computador local > Computer Configuration\Administrative Templates\System\                                       #
+#      Specify settings for optional component installation and component repair > Habilitar >                                                   #
+#      Selecionar "Download repair content and optional features directly from Windows Update instead of Windows Server Update Services (WSUS)"  #
+#                                                                                                                                                #
+#   5) Set-itemproperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name "UseWUServer" -value "1" -Force                   #
+#                                                                                                                                                #
+##################################################################################################################################################
 
 <# 
 .NAME
@@ -18,19 +28,19 @@
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
-$programas = @('Foxit Reader', 'Bibliotecas Python', 'Visual Studio Code', 'Chrome Driver', 'PowerBI', 'Pycharm Community', 'R 4.2.2', 'RStudio', 'Refinitiv Messenger', 'Teamviewer', 'Desinstalar Office 365', 'Office 16 x32', 'Office 16 x64', 'Office 365 x32', 'DBeaver', 'Office 365 x64', 'PostgreODBC x64', 'PostgreODBC x32')
-#$computadores = Get-ADComputer -Filter * -SearchBase "CN=Computers,DC=kapitalo,DC=local" | select Name
+$programas = @('Foxit Reader', 'Bibliotecas Python', 'Fechar Conexões IDLE SERVIDOR', 'Reiniciar o Teamviewer', 'Python 3.7', 'Python 3.11', 'Reiniciar Driver de Vídeo', 'FXAll', 'Visual Studio Code', 'FortiClient VPN', 'RTools', 'Jabber', 'AnaConda', 'Trade Web', 'NodeJS', 'Chrome Driver', 'Pycharm Community', 'R 4.2.2', 'RStudio', 'Refinitiv Messenger', 'Teamviewer', 'Desinstalar Office 365', 'Office 16 x32', 'Office 16 x64', 'Office 365 x32', 'DBeaver', 'Office 365 x64', 'PostgreODBC x64', 'PostgreODBC x32')
 
 $Form = New-Object system.Windows.Forms.Form
-$Form.ClientSize = New-Object System.Drawing.Point(357, 65)
+$Form.ClientSize = New-Object System.Drawing.Point(357, 68)
 $Form.text = "Remote Installer"
 $Form.TopMost = $false
+$Form.FormBorderStyle = 'Sizable'
 
 $button = New-Object system.Windows.Forms.Button
 $button.text = "Instalar"
-$button.width = 63
-$button.height = 22
-$button.location = New-Object System.Drawing.Point(289, 37)
+$button.width = 75
+$button.height = 25
+$button.location = New-Object System.Drawing.Point(270, 37)
 $button.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 
 $ComboBox2 = New-Object system.Windows.Forms.ComboBox
@@ -47,27 +57,24 @@ $ComboBox1.height = 20
 $ComboBox1.location = New-Object System.Drawing.Point(184, 10)
 $ComboBox1.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 
+# Selecionar computadores do AD com base na descrição
+
 foreach ($programa in $programas | sort) {
     $ComboBox1.Items.add($programa)
 }
 
 $nomeclatura = @('WS10', 'WS11', 'NT10', 'NT11')
+$computadores = @()
 
-
-for ($i = 0; $i -lt $nomeclatura.Length; $i++ | sort) {
-    $computadores = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Name -match $nomeclatura[$i] }).Description
-    foreach ($computador in $computadores | sort) {
-        $ComboBox2.Items.add($computador)
-    }
+for ($i = 0; $i -lt $nomeclatura.Length; $i++) {
+    $computadores += (Get-ADComputer -Filter * -Properties Name, Description | Where-Object { $_.Name -match $nomeclatura[$i] }).Description
 }
 
+$computadores = $computadores | Sort-Object
 
-<#
-foreach($computador in $computadores | sort name)
-{
-  $ComboBox2.Items.add($computador.Name)
+foreach ($computador in $computadores) {
+    $ComboBox2.Items.Add($computador)
 }
-#>
 
 $Label1 = New-Object system.Windows.Forms.Label
 $Label1.text = "Status"
@@ -84,8 +91,6 @@ $stream = [System.IO.MemoryStream]::new($iconBytes, 0, $iconBytes.Length)
 $Form.Icon = [System.Drawing.Icon]::FromHandle(([System.Drawing.Bitmap]::new($stream).GetHIcon()))
 $stream.Dispose()
 
-#$Form.Controls.Add($ComboBox1)
-
 $Form.controls.AddRange(@($button, $ComboBox2, $ComboBox1, $Label1))
 
 $button.Add_Click({
@@ -93,19 +98,19 @@ $button.Add_Click({
         # Instalar o PostgreODBC x64
         if ($ComboBox1.Text -eq 'PostgreODBC x64') {
             try {
-                $file = "\\kapitalo.local\netlogon\Instalacao\PostgreODBC\PostgreODBC_v09.00.0101_x64.msi"
+                $file = "\\servidor\ti\disks\Instalacao\PostgreODBC\PostgreODBC_v09.00.0101_x64.msi"
                 $descricao = $ComboBox2.Text
-                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
                 $Label1.text = "Instalando PostgreODBC x64..."
                 $Label1.ForeColor = "Blue"
 
                 Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\PostgreODBC_v09.00.0101_x64.msi" -Force
 
-                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
                 Invoke-Command -ComputerName $computerName -ScriptBlock { 
                     Start-Process msiexec -ArgumentList '/i c:\windows\temp\PostgreODBC_v09.00.0101_x64.msi /qn /quiet' -Wait
                 }
-                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
             }
 
             catch {
@@ -120,15 +125,231 @@ $button.Add_Click({
             }
         }
 
+        # Instalar o Python 3.7
+        if ($ComboBox1.Text -eq 'Python 3.7') {
+            try {
+                $file = "\\servidor\ti\disks\Instalacao\Python\Python_v3.7.3.exe"
+                $descricao = $ComboBox2.Text
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
+                $Label1.text = "Instalando Python 3.7..."
+                $Label1.ForeColor = "Blue"
+
+                Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\Python_v3.7.3.exe" -Force
+
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
+                Invoke-Command -ComputerName $computerName -ScriptBlock { 
+                    Start-Process "c:\windows\temp\Python_v3.7.3.exe" -argumentlist "/quiet InstallAllUsers=1 DefaultAllUsersTargetDir=C:\Python37 PrependPath=1" -Wait
+                    Start-Process "C:\Python37\Scripts\pip.exe" -argumentlist "install -r \\servidor\TI\Disks\_Python\Requirements.txt" -wait
+                }
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
+            }
+
+            catch {
+                $Label1.text = "Erro ao instalar o Python 3.7" 
+                $Label1.ForeColor = "Red"
+            }
+        
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Python37") {
+                $Label1.text = "Python 3.7 Instalado!"
+                $Label1.ForeColor = "Green"
+            }
+        }
+
+        # Instalar o Python 3.11
+        if ($ComboBox1.Text -eq 'Python 3.11') {
+            try {
+                $file = "\\servidor\ti\disks\_Python\Python v3.11.5.exe"
+                $descricao = $ComboBox2.Text
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
+                $Label1.text = "Instalando Python 3.11..."
+                $Label1.ForeColor = "Blue"
+
+                Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\Python v3.11.5.exe" -Force
+
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
+                Invoke-Command -ComputerName $computerName -ScriptBlock { 
+                    Start-Process "c:\windows\temp\Python v3.11.5.exe" -argumentlist "/quiet InstallAllUsers=1 DefaultAllUsersTargetDir=C:\Python311 PrependPath=1" -Wait
+                    Start-Process "C:\Python37\Scripts\pip.exe" -argumentlist "install -r \\servidor\TI\Disks\_Python\Requirements.txt" -wait
+                }
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
+            }
+
+            catch {
+                $Label1.text = "Erro ao instalar o Python 3.11" 
+                $Label1.ForeColor = "Red"
+            }
+        
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Python311") {
+                $Label1.text = "Python 3.11 Instalado!"
+                $Label1.ForeColor = "Green"
+            }
+        }
+
+
+        # Instalar o NodeJS
+        if ($ComboBox1.Text -eq 'NodeJS') {
+            try {
+                $file = "\\servidor\TI\Disks\NodeJs\Node.msi"
+                $descricao = $ComboBox2.Text
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
+                $Label1.text = "Instalando NodeJs..."
+                $Label1.ForeColor = "Blue"
+
+                Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\Node.msi" -Force
+
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
+                Invoke-Command -ComputerName $computerName -ScriptBlock { 
+                    Start-Process msiexec -ArgumentList '/i c:\windows\temp\Node.msi INSTALLDIR="C:\NodeJS" /quiet' -Wait
+                }
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
+            }
+
+            catch {
+                $Label1.text = "Erro ao instalar o NodeJS" 
+                $Label1.ForeColor = "Red"
+            }
+        
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\NodeJS") {
+                $Label1.text = "NodeJS Instalado!"
+                $Label1.ForeColor = "Green"
+            }
+        }
+
+        # Instalar AnaConda
+        if ($ComboBox1.Text -eq 'AnaConda') {
+            try {
+                $file = "\\servidor\TI\Disks\Anaconda\Anaconda.exe"
+                $descricao = $ComboBox2.Text
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
+                $Label1.text = "Instalando AnaConda..."
+                $Label1.ForeColor = "Blue"
+
+                Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\Anaconda.exe" -Force
+
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
+                Invoke-Command -ComputerName $computerName -ScriptBlock { 
+                    Start-Process "c:\windows\temp\Anaconda.exe" -ArgumentList '/InstallationType=AllUsers /RegisterPython=0 /S /D=C:\AnaConda3' -Wait
+                }
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
+            }
+
+            catch {
+                $Label1.text = "Erro ao instalar o AnaConda" 
+                $Label1.ForeColor = "Red"
+            }
+        
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\AnaConda3") {
+                $Label1.text = "AnaConda Instalado!"
+                $Label1.ForeColor = "Green"
+            }
+        }
+                
+        # Reiniciar o Teamviewer
+        if ($ComboBox1.Text -eq 'Reiniciar o Teamviewer') {
+            try {
+                $descricao = $ComboBox2.Text
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
+                $Label1.text = "Reiniciando Teamviewer..."
+                $Label1.ForeColor = "Blue"
+
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
+                Invoke-Command -ComputerName $computerName -ScriptBlock {
+                    Restart-Service TeamViewer -PassThru -ErrorAction SilentlyContinue
+                    Stop-Process -Name TeamViewer -Force -ErrorAction SilentlyContinue
+                    if (Test-Path "C:\Program Files (x86)\TeamViewer") { Start-Process "C:\Program Files (x86)\TeamViewer\TeamViewer.exe" }
+                    else { Start-Process "C:\Program Files\TeamViewer\TeamViewer.exe" }
+                }
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
+            }
+
+            catch {
+                $Label1.text = "Erro ao Reiniciar o Teamviewer" 
+                $Label1.ForeColor = "Red"
+            }
+        
+            $Label1.text = "Teamviewer Reiniciado!"
+            $Label1.ForeColor = "Green"            
+        }
+
+
+        # Instalar o Jabber
+        if ($ComboBox1.Text -eq 'Jabber') {
+            try {
+                $file = "\\servidor\TI\Disks\Cisco Jabber\Cisco_Jabber.msi"
+                $descricao = $ComboBox2.Text
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
+                $Label1.text = "Instalando Jabber..."
+                $Label1.ForeColor = "Blue"
+
+                Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\jabber.msi" -Force
+
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
+                Invoke-Command -ComputerName $computerName -ScriptBlock { 
+                    Start-Process msiexec -ArgumentList '/i c:\windows\temp\jabber.msi /quiet CLEAR=1 UPN_DISCOVERY_ENABLED=false' -Wait
+                }
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
+            }
+
+            catch {
+                $Label1.text = "Erro ao instalar o Jabber" 
+                $Label1.ForeColor = "Red"
+            }
+        
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files (x86)\Cisco Systems\Cisco Jabber") {
+                $Label1.text = "Jabber Instalado!"
+                $Label1.ForeColor = "Green"
+            }
+        }
+
+        # Instalar o Cisco AnnyConnect
+        if ($ComboBox1.Text -eq 'FortiClient VPN') {
+            try {
+                $file = "\\servidor\ti\Disks\FortiClient - RTM VPN\FortiClientVPNSetup.exe"
+                $file2 = "\\servidor\ti\Disks\FortiClient - RTM VPN\vpn.conf"
+                $descricao = $ComboBox2.Text
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
+                $Label1.text = "Instalando FortiClient VPN..."
+                $Label1.ForeColor = "Blue"
+
+                Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\FortiClientVPNSetup.exe" -Force
+                Copy-Item -Path $file2 -Destination "\\$($computername)\c$\windows\temp\vpn.conf" -Force
+
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
+                Invoke-Command -ComputerName $computerName -ScriptBlock { 
+                    Start-Process "C:\windows\temp\FortiClientVPNSetup.exe" -ArgumentList '/quiet /passive' -Wait
+                    Start-Process " C:\Program Files\Fortinet\FortiClient\FCConfig.exe" -ArgumentList '-m all -f C:\windows\temp\vpn.conf -o import -i 1 -p 12345678' -Wait
+                }
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
+            }
+
+            catch {
+                $Label1.text = "Erro ao instalar o FortiClient VPN" 
+                $Label1.ForeColor = "Red"
+            }
+        
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files\Fortinet") {
+                $Label1.text = "FortiClient VPN Instalado!"
+                $Label1.ForeColor = "Green"
+            }
+        }
+
+
+
         #Atualizar Chrome Drive
         if ($ComboBox1.Text -eq 'Chrome Driver') {
             try {
                 $descricao = $ComboBox2.Text
-                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
                 $Label1.text = "Atualizando Chrome Driver..."
                 $Label1.ForeColor = "Blue"
 
-                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
                 Invoke-Command -ComputerName $computerName -ScriptBlock { 
                     if (-not(Test-Path -Path C:\temp)) { mkdir C:\temp }
                     $ChromeVersion = $(Get-Package -Name "Google Chrome").Version
@@ -139,18 +360,26 @@ $button.Add_Click({
 
                     Invoke-WebRequest "https://chromedriver.storage.googleapis.com/$ChromeDriverVersion/chromedriver_win32.zip" -OutFile "C:\temp\chrome.zip"
                     Expand-Archive "C:\temp\chrome.zip" -DestinationPath "C:\temp" -Force
-                    Copy-Item "C:\temp\chromedriver.exe" -Destination "C:\Python37" -Force -ErrorAction SilentlyContinue
-                    Copy-Item "C:\temp\chromedriver.exe" -Destination "C:\Python39" -Force -ErrorAction SilentlyContinue
+                    try {
+                        if (Test-Path "C:\Python37") { Copy-Item "C:\temp\chromedriver.exe" -Destination "C:\Python37" -Force -ErrorAction SilentlyContinue }
+                        if (Test-Path "C:\Python38") { Copy-Item "C:\temp\chromedriver.exe" -Destination "C:\Python38" -Force -ErrorAction SilentlyContinue }
+                        if (Test-Path "C:\Python39") { Copy-Item "C:\temp\chromedriver.exe" -Destination "C:\Python39" -Force -ErrorAction SilentlyContinue }
+                        if (Test-Path "C:\Python310") { Copy-Item "C:\temp\chromedriver.exe" -Destination "C:\Python310" -Force -ErrorAction SilentlyContinue }
+                    }
+                    catch {
+                        $Label1.text = "Erro: ChromeDriver Aberto" 
+                        $Label1.ForeColor = "Red"
+                    }
 
                 }
-                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+                
             }
 
             catch {
                 $Label1.text = "Erro ao Atualizar o Chrome Driver" 
                 $Label1.ForeColor = "Red"
             }
-        
+            Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
             $Label1.text = "Chrome Driver Atualizado!"
             $Label1.ForeColor = "Green"
         }
@@ -159,15 +388,15 @@ $button.Add_Click({
         if ($ComboBox1.Text -eq 'Bibliotecas Python') {
             try {
                 $descricao = $ComboBox2.Text
-                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
                 $Label1.text = "Instalando Bibliotecas Python..."
                 $Label1.ForeColor = "Blue"
 
-                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
                 Invoke-Command -ComputerName $computerName -ScriptBlock { 
-                    Start-Process "C:\Python37\Scripts\pip.exe" -ArgumentList 'install -r \\fskptl01\TI\Disks\_Python\requirements.txt' -Wait
+                    Start-Process "C:\Python37\Scripts\pip.exe" -ArgumentList 'install -r \\servidor\TI\Disks\_Python\requirements.txt' -Wait
                 }
-                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
             }
 
             catch {
@@ -183,19 +412,19 @@ $button.Add_Click({
         # Instalar o PostgreODBC x32
         if ($ComboBox1.Text -eq 'PostgreODBC x32') {
             try {
-                $file = "\\kapitalo.local\netlogon\Instalacao\PostgreODBC\PostgreODBC_v08.04.0200_x32.msi"
+                $file = "\\servidor\ti\disks\Instalacao\PostgreODBC\PostgreODBC_v08.04.0200_x32.msi"
                 $descricao = $ComboBox2.Text
-                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
                 $Label1.text = "Instalando PostgreODBC x32..."
                 $Label1.ForeColor = "Blue"
 
                 Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\PostgreODBC_v08.04.0200_x32.msi"
 
-                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
                 Invoke-Command -ComputerName $computerName -ScriptBlock { 
                     Start-Process msiexec -ArgumentList '/i c:\windows\temp\PostgreODBC_v08.04.0200_x32.msi /qn /quiet' -Wait
                 }
-                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
             }
 
             catch {
@@ -214,23 +443,23 @@ $button.Add_Click({
         # Desinstalar office 365
         if ($ComboBox1.Text -eq 'Desinstalar Office 365') {
             try {
-                $file = "\\kapitalo.local\NETLOGON\Instalacao\Office2021Apps\Office2021Apps.exe"
-                $file2 = "\\kapitalo.local\NETLOGON\Instalacao\Office2021Apps\Remove.xml"
+                $file = "\\servidor\ti\disks\Instalacao\Office2021Apps\Office2021Apps.exe"
+                $file2 = "\\servidor\ti\disks\Instalacao\Office2021Apps\Remove.xml"
                 $descricao = $ComboBox2.Text
-                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
                 $Label1.text = "Desinstalando Office 365..."
 
                 Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\Office2021Apps.exe"
                 Copy-Item -Path $file2 -Destination "\\$($computername)\c$\windows\temp\Remove.xml"
 
-                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
                 Invoke-Command -ComputerName $computerName -ScriptBlock {
                     Stop-Process -Name EXCEL -Force
                     Stop-Process -Name WINWORD -Force
                     Stop-Process -Name OUTLOOK -Force 
                     Start-Process c:\windows\temp\Office2021Apps.exe -ArgumentList '/configure c:\windows\temp\Remove.xml' -Wait
                 }
-                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
             }
 
             catch {
@@ -247,24 +476,24 @@ $button.Add_Click({
         # Instalar Office 365 x32
         if ($ComboBox1.Text -eq 'Office 365 x32') {
             try {
-                $file = "\\kapitalo.local\NETLOGON\Instalacao\Office2021Apps\Office2021Apps.exe"
-                $file2 = "\\kapitalo.local\NETLOGON\Instalacao\Office2021Apps\Configuracao.xml"
+                $file = "\\servidor\ti\disks\Instalacao\Office2021Apps\Office2021Apps.exe"
+                $file2 = "\\servidor\ti\disks\Instalacao\Office2021Apps\Configuracao.xml"
                 $descricao = $ComboBox2.Text
-                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
                 $Label1.text = "Instalando Office 365..."
                 $Label1.ForeColor = "Blue"
 
                 Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\Office2021Apps.exe"
                 Copy-Item -Path $file2 -Destination "\\$($computername)\c$\windows\temp\Configuracao.xml"
 
-                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
                 Invoke-Command -ComputerName $computerName -ScriptBlock {
-                    Stop-Process -Name EXCEL -Force
-                    Stop-Process -Name WINWORD -Force
-                    Stop-Process -Name OUTLOOK -Force 
+                    Stop-Process -Name EXCEL -Force -ErrorAction SilentlyContinue
+                    Stop-Process -Name WINWORD -Force -ErrorAction SilentlyContinue
+                    Stop-Process -Name OUTLOOK -Force -ErrorAction SilentlyContinue
                     Start-Process c:\windows\temp\Office2021Apps.exe -ArgumentList '/configure c:\windows\temp\Configuracao.xml' -Wait
                 }
-                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
             }
 
             catch {
@@ -283,24 +512,24 @@ $button.Add_Click({
         # Instalar Office 365 x64
         if ($ComboBox1.Text -eq 'Office 365 x64') {
             try {
-                $file = "\\kapitalo.local\NETLOGON\Instalacao\Office2021Apps\Office2021Apps.exe"
-                $file2 = "\\kapitalo.local\NETLOGON\Instalacao\Office2021Apps\Configuracao_x64.xml"
+                $file = "\\servidor\ti\disks\Instalacao\Office2021Apps\Office2021Apps.exe"
+                $file2 = "\\servidor\ti\disks\Instalacao\Office2021Apps\Configuracao_x64.xml"
                 $descricao = $ComboBox2.Text
-                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
                 $Label1.text = "Instalando Office 365 x64..."
                 $Label1.ForeColor = "Blue"
 
                 Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\Office2021Apps.exe"
                 Copy-Item -Path $file2 -Destination "\\$($computername)\c$\windows\temp\Configuracao_x64.xml"
 
-                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
                 Invoke-Command -ComputerName $computerName -ScriptBlock {
                     Stop-Process -Name EXCEL -Force
                     Stop-Process -Name WINWORD -Force
                     Stop-Process -Name OUTLOOK -Force 
                     Start-Process c:\windows\temp\Office2021Apps.exe -ArgumentList '/configure c:\windows\temp\Configuracao_x64.xml' -Wait
                 }
-                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
             }
 
             catch {
@@ -319,22 +548,22 @@ $button.Add_Click({
         # Instalar Office 16 x32
         if ($ComboBox1.Text -eq 'Office 16 x32') {
             try {
-                $file = "\\kapitalo.local\NETLOGON\Instalacao\Office2016\x32"
+                $file = "\\servidor\ti\disks\Instalacao\Office2016\x32"
                 $descricao = $ComboBox2.Text
-                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
                 $Label1.text = "Instalando Office 16 x32..."
                 $Label1.ForeColor = "Blue"
 
                 Copy-Item -Recurse -Path $file -Destination "\\$($computername)\c$\windows\temp\"
 
-                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
                 Invoke-Command -ComputerName $computerName -ScriptBlock {
                     Stop-Process -Name EXCEL -Force
                     Stop-Process -Name WINWORD -Force
                     Stop-Process -Name OUTLOOK -Force 
                     Start-Process C:\windows\temp\x32\English\setup.exe -ArgumentList '/adminflie C:\windows\temp\x32\English\office-setup.MSP' -Wait
                 }
-                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
             }
 
             catch {
@@ -353,22 +582,22 @@ $button.Add_Click({
         # Instalar Office 16 x64
         if ($ComboBox1.Text -eq 'Office 16 x64') {
             try {
-                $file = "\\kapitalo.local\NETLOGON\Instalacao\Office2016\x64"
+                $file = "\\servidor\ti\disks\Instalacao\Office2016\x64"
                 $descricao = $ComboBox2.Text
-                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
                 $Label1.text = "Instalando Office 16 x64..."
                 $Label1.ForeColor = "Blue"
 
                 Copy-Item -Recurse -Path $file -Destination "\\$($computername)\c$\windows\temp\"
 
-                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
                 Invoke-Command -ComputerName $computerName -ScriptBlock {
                     Stop-Process -Name EXCEL -Force
                     Stop-Process -Name WINWORD -Force
                     Stop-Process -Name OUTLOOK -Force 
                     Start-Process C:\windows\temp\x64\English\setup.exe -ArgumentList '/adminflie C:\windows\temp\x64\English\office-setup.MSP' -Wait
                 }
-                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
             }
 
             catch {
@@ -386,19 +615,19 @@ $button.Add_Click({
         # Instalar DBeaver
         if ($ComboBox1.Text -eq 'DBeaver') {
             try {
-                $file = "\\FSKPTL01\TI\Disks\_Dbeaver\Dbeaver CE v6.0.5.exe"
+                $file = "\\servidor\TI\Disks\_Dbeaver\Dbeaver CE v6.0.5.exe"
                 $descricao = $ComboBox2.Text
-                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
                 $Label1.text = "Instalando DBeaver..."
                 $Label1.ForeColor = "Blue"
 
                 Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
 
-                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
                 Invoke-Command -ComputerName $computerName -ScriptBlock { 
                     Start-Process c:\windows\temp\installer.exe -ArgumentList '/allusers /S' -Wait
                 }
-                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
             }
 
             catch {
@@ -416,19 +645,19 @@ $button.Add_Click({
         # Instala o Foxit Reader da Rede
         if ($ComboBox1.Text -eq 'Foxit Reader') {
             try {
-                $file = "\\FSKPTL01\TI\Disks\Foxit Reader\Foxit Reader v722.0929.exe"
+                $file = "\\servidor\TI\Disks\Foxit Reader\Foxit Reader.exe"
                 $descricao = $ComboBox2.Text
-                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
                 $Label1.text = "Instalando Foxit..."
                 $Label1.ForeColor = "Blue"
 
                 Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
 
-                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
                 Invoke-Command -ComputerName $computerName -ScriptBlock { 
                     Start-Process c:\windows\temp\installer.exe -ArgumentList '/VERYSILENT /NORESTART' -Wait
                 }
-                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
             }
 
             catch {
@@ -446,19 +675,19 @@ $button.Add_Click({
         # Instala o Pycharm Community da Rede
         if ($ComboBox1.Text -eq 'Pycharm Community') {
             try {
-                $file = "\\FSKPTL01\TI\Disks\PyCharm\Pycharm Community v2022.2.3.exe"
+                $file = "\\servidor\TI\Disks\PyCharm\Pycharm Community.exe"
                 $descricao = $ComboBox2.Text
-                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
                 $Label1.text = "Instalando Pycharm Community..."
                 $Label1.ForeColor = "Blue"
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name                
 
                 Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
 
-                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
                 Invoke-Command -ComputerName $computerName -ScriptBlock { 
                     Start-Process c:\windows\temp\installer.exe -ArgumentList '/S' -Wait
                 }
-                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
             }
 
             catch {
@@ -467,7 +696,7 @@ $button.Add_Click({
             }
         
             $computerName = $computerName.ToString()
-            if (Test-Path "\\$computerName\C$\Program Files\JetBrains") {
+            if (Test-Path "\\$computerName\C$\Program Files (x86)\JetBrains") {
                 $Label1.text = "Pycharm Community instalado!"
                 $Label1.ForeColor = "Green"
             }
@@ -476,19 +705,19 @@ $button.Add_Click({
         # Instala o R 4.2.2 da Rede
         if ($ComboBox1.Text -eq 'R 4.2.2') {
             try {
-                $file = "\\FSKPTL01\TI\Disks\RStudio\R 4.2.2.exe"
+                $file = "\\servidor\TI\Disks\RStudio\R 4.2.2.exe"
                 $descricao = $ComboBox2.Text
-                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
                 $Label1.text = "Instalando R 4.2.2..."
                 $Label1.ForeColor = "Blue"
 
                 Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
 
-                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
                 Invoke-Command -ComputerName $computerName -ScriptBlock { 
                     Start-Process c:\windows\temp\installer.exe -ArgumentList '/SILENT /VERYSILENT' -Wait
                 }
-                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
             }
 
             catch {
@@ -503,22 +732,52 @@ $button.Add_Click({
             }
         }
 
+        # Instala o RTools
+        if ($ComboBox1.Text -eq 'RTools') {
+            try {
+                $file = "\\servidor\TI\Disks\RStudio\RTools 4.2.exe"
+                $descricao = $ComboBox2.Text
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
+                $Label1.text = "Instalando RTools..."
+                $Label1.ForeColor = "Blue"
+
+                Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
+
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
+                Invoke-Command -ComputerName $computerName -ScriptBlock { 
+                    Start-Process c:\windows\temp\installer.exe -ArgumentList '/VERYSILENT /DIR=C:\Rtools\' -Wait
+                }
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
+            }
+
+            catch {
+                $Label1.text = "Erro ao instalar o RTools" 
+                $Label1.ForeColor = "Red"
+            }
+        
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files\R") {
+                $Label1.text = "RTools instalado!"
+                $Label1.ForeColor = "Green"
+            }
+        }
+
         # Instala o RStudio da Rede
         if ($ComboBox1.Text -eq 'RStudio') {
             try {
-                $file = "\\FSKPTL01\TI\Disks\RStudio\RStudio 2022.07.2.exe"
+                $file = "\\servidor\TI\Disks\RStudio\RStudio 2022.07.2.exe"
                 $descricao = $ComboBox2.Text
-                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
                 $Label1.text = "Instalando RStudio..."
                 $Label1.ForeColor = "Blue"
 
                 Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
 
-                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
                 Invoke-Command -ComputerName $computerName -ScriptBlock { 
                     Start-Process c:\windows\temp\installer.exe -ArgumentList '/S' -Wait
                 }
-                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
             }
 
             catch {
@@ -533,22 +792,53 @@ $button.Add_Click({
             }
         }
 
+        # Instala o Trade Web da Rede
+        if ($ComboBox1.Text -eq 'Trade Web') {
+            try {
+                $file = "\\servidor\Dados\TI\Disks\_Software Traders\TradeWeb\Tradeweb Live Viewer.msi"
+                $descricao = $ComboBox2.Text
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
+                $Label1.text = "Instalando Trade Web..."
+                $Label1.ForeColor = "Blue"
+
+                Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.msi"
+
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
+                Invoke-Command -ComputerName $computerName -ScriptBlock { 
+                    Start-Process msiexec.exe -ArgumentList 'c:\windows\temp\installer.msi /quiet' -Wait
+                }
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
+            }
+
+            catch {
+                $Label1.text = "Erro ao instalar o Trade Web" 
+                $Label1.ForeColor = "Red"
+            }
+        
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files\RStudio") {
+                $Label1.text = "Trade Web instalado!"
+                $Label1.ForeColor = "Green"
+            }
+        }
+
+
         # Instala o Refinitiv da Rede
         if ($ComboBox1.Text -eq 'Refinitiv Messenger') {
             try {
-                $file = "\\Fskptl01\ti\Disks\_Software Traders\Refinitiv Messenger\Refinitiv Messenger v1.11.385.exe"
+                $file = "\\servidor\ti\Disks\_Software Traders\Refinitiv Messenger\Refinitiv Messenger v1.20.38.exe"
                 $descricao = $ComboBox2.Text
-                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
                 $Label1.text = "Instalando Refinitiv Messenger..."
                 $Label1.ForeColor = "Blue"
 
                 Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
 
-                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
                 Invoke-Command -ComputerName $computerName -ScriptBlock { 
-                    Start-Process c:\windows\temp\installer.exe -ArgumentList '--silent' -Wait
+                    Start-Process c:\windows\temp\installer.exe -ArgumentList '--machine-autoupdate-service --silent' -Wait
                 }
-                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
             }
 
             catch {
@@ -556,27 +846,63 @@ $button.Add_Click({
                 $Label1.ForeColor = "Red"
             }
         
-            Remove-Item "c:\windows\temp\installer.exe" -Force
-            $Label1.text = "Refinitiv Messenger instalado!"
-            $Label1.ForeColor = "Green"
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files\Refinitiv\Refinitiv Workspace") {
+                $Label1.text = "Refinitiv Messenge instalado!"
+                $Label1.ForeColor = "Green"
+            }
         }
+
+        # Instala o FXAll da Rede
+        if ($ComboBox1.Text -eq 'FXAll') {
+            try {
+                $file = "\\servidor\TI\Disks\_Software Traders\Refinitiv FXall\Refinitiv FXall.exe"
+                $file2 = "\\servidor\TI\Disks\_Software Traders\Refinitiv FXall\installer.properties"
+                $descricao = $ComboBox2.Text
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
+                $Label1.text = "Instalando FXAll..."
+                $Label1.ForeColor = "Blue"
+
+                Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
+                Copy-Item -Path $file2 -Destination "\\$($computername)\c$\windows\temp\installer.properties"
+
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
+                Invoke-Command -ComputerName $computerName -ScriptBlock { 
+                    Start-Process c:\windows\temp\installer.exe -ArgumentList '-i silent' -Wait
+                }
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
+            }
+
+            catch {
+                $Label1.text = "Erro ao instalar o FXAll" 
+                $Label1.ForeColor = "Red"
+            }
+
+            $computerName = $computerName.ToString()
+            if (Test-Path "\\$computerName\C$\Program Files\Refinitiv\Refinitiv FXall_") {
+                $Label1.text = "FXAll instalado!"
+                $Label1.ForeColor = "Green"
+            }
+
+        }
+
 
         # Instala o Visual Studio Code
         if ($ComboBox1.Text -eq 'Visual Studio Code') {
             try {
-                $file = "\\FSKPTL01\TI\Disks\Visual Studio Code\VSCodeSetup.exe"
+                $file = "\\servidor\TI\Disks\Visual Studio Code\VSCodeSetup.exe"
                 $descricao = $ComboBox2.Text
-                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
                 $Label1.text = "Instalando Visual Studio Code..."
                 $Label1.ForeColor = "Blue"
 
                 Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\installer.exe"
 
-                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
                 Invoke-Command -ComputerName $computerName -ScriptBlock { 
                     Start-Process c:\windows\temp\installer.exe -ArgumentList '/DIR="C:\Program Files\Visual Studio Code" /VERYSILENT /NORESTART /MERGETASKS=!runcode' -Wait
                 }
-                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
             }
 
             catch {
@@ -591,51 +917,25 @@ $button.Add_Click({
             }
         }
 
-
-        # Instala o PowerBI da Microsoft Store
-        if ($ComboBox1.Text -eq 'PowerBI') {
-            try {
-                $descricao = $ComboBox2.Text
-                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
-                $Label1.text = "Instalando PowerBI..."
-                $Label1.ForeColor = "Blue"
-
-                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
-                Invoke-Command -ComputerName $computerName -ScriptBlock { 
-                    Start-Process winget -ArgumentList 'install Microsoft.PowerBI -h' -Wait
-                }
-                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
-            }
-
-            catch {
-                $Label1.text = "Erro ao instalar o PowerBI" 
-                $Label1.ForeColor = "Red"
-            }
-        
-            $Label1.text = "PowerBI instalado!"
-            $Label1.ForeColor = "Green"
-        }
-
-
         # Instala o Teamviewer da Rede
         if ($ComboBox1.Text -eq 'Teamviewer') {
             try {
-                $file = "\\FSKPTL01\TI\Disks\Teamviewer\Teamviewer.msi"
-                $file2 = "\\FSKPTL01\TI\Disks\Teamviewer\Config.tvopt"
+                $file = "\\servidor\TI\Disks\Teamviewer\Teamviewer.msi"
+                $file2 = "\\servidor\TI\Disks\Teamviewer\Config.tvopt"
             
                 $descricao = $ComboBox2.Text
-                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -match $descricao }).Name
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
                 $Label1.text = "Instalando Teamviewer..."
                 $Label1.ForeColor = "Blue"
 
                 Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\Teamviewer.msi"
                 Copy-Item -Path $file2 -Destination "\\$($computername)\c$\windows\temp\Config.tvopt"
 
-                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
                 Invoke-Command -ComputerName $computerName -ScriptBlock { 
                     Start-Process msiexec.exe -ArgumentList '/i "c:\windows\temp\Teamviewer.msi" /qb SETTINGSFILE="c:\windows\temp\Config.tvopt"' -Wait
                 }
-                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
             }
 
             catch {
@@ -647,6 +947,102 @@ $button.Add_Click({
             if (Test-Path "\\$computerName\C$\Program Files\TeamViewer") {
                 $Label1.text = "Teamviewer instalado!"
                 $Label1.ForeColor = "Green"
+            }
+        }
+
+        # Reiniciar Driver de Vídeo
+        if ($ComboBox1.Text -eq 'Reiniciar Driver de Vídeo') {
+            try {
+                $file = "G:\TI\Scripts\Reiniciar_Driver_Video.py"
+            
+                $descricao = $ComboBox2.Text
+                $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
+                $Label1.text = "Reiniciando Driver de Vídeo..."
+                $Label1.ForeColor = "Blue"
+
+                Copy-Item -Path $file -Destination "\\$($computername)\c$\windows\temp\Reiniciar_Driver_Video.py"
+
+                Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
+                Invoke-Command -ComputerName $computerName -ScriptBlock { 
+                    python "c:\windows\temp\Reiniciar_Driver_Video.py"
+                }
+                Get-Service -ComputerName $computerName -Name *winrm* | Stop-Service -ErrorAction SilentlyContinue
+            }
+
+            catch {
+                $Label1.text = "Erro ao Reiniciar Driver de Vídeo" 
+                $Label1.ForeColor = "Red"
+            }
+        
+            $Label1.text = "Driver de vídeo reiniciado!"
+            $Label1.ForeColor = "Green"
+        }
+
+        # Fechar Conexões IDLE SERVIDOR
+        if ($ComboBox1.Text -eq 'Fechar Conexões IDLE SERVIDOR') {
+
+            $Label1.text = "Fechando Conexões IDLE no SERVIDOR..."
+            $Label1.ForeColor = "Blue"
+
+            Start-Process pythonw "\\servidor\TI\Scripts\Fechar_conexoes_idle.py" -Wait
+        
+            $Label1.text = "Conexões IDLE Fechadas..."
+            $Label1.ForeColor = "Green"
+        }
+
+
+
+        # Instalar qualquer programa com o Chocolatey
+        if ($ComboBox1.Text -notmatch ($programas -join '|')) {
+            
+            $descricao = $ComboBox2.Text
+            $computerName = (Get-AdComputer -Filter * -Properties Name, Description | select Name, Description | ? { $_.Description -eq $descricao }).Name
+            $Program = $ComboBox1.Text
+
+            $Label1.text = "Instalando $($Program) via Chocolatey..."
+            $Label1.ForeColor = "Blue"
+
+            Get-Service -ComputerName $computerName -Name *winrm* | Start-Service -ErrorAction SilentlyContinue
+
+            $verificar_choco = Invoke-Command -ComputerName $computerName -ScriptBlock { Get-Command choco } -ErrorAction SilentlyContinue
+
+            if ($verificar_choco -ne 0) {
+                $Label1.text = "Instalando Chocolatey..."
+
+                Start-Sleep 1
+
+                Invoke-Command -ComputerName $computerName -ScriptBlock {                    
+                    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+                    Continue                    
+                }
+            }
+            else {
+                $Label1.text = "Instalando $($Program) via Chocolatey..."
+                Start-Sleep 1
+                continue
+            }
+
+            $Label1.text = "Instalando $($Program) via Chocolatey..."
+
+            Start-Sleep 1
+
+            $installResult = Invoke-Command -ComputerName $computerName -ScriptBlock {
+                Param($Program)
+
+                choco install $using:Program -y | Out-File -FilePath C:\Windows\Temp\choco-$using:Program.txt
+                                
+                return $LASTEXITCODE
+
+            } -ArgumentList $Program
+            
+            if ($installResult -eq 0) {
+                $Label1.text = "$($Program) instalado via Chocolatey!"
+                $Label1.ForeColor = "Green"
+            }
+            
+            else {
+                $Label1.text = "Erro ao instalar o $($Program) via Chocolatey" 
+                $Label1.ForeColor = "Red"            
             }
         }
 		

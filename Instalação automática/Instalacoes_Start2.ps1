@@ -1,0 +1,1 @@
+﻿Start-Process $Env:WINDIR\SysWOW64\WindowsPowerShell\v1.0\powershell.exe \\SERVIDOR\NETLOGON\Instalacoes_Win10_Office2016.ps1

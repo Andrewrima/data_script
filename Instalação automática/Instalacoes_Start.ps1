@@ -1,0 +1,1 @@
+﻿Start-Process $Env:WINDIR\SysWOW64\WindowsPowerShell\v1.0\powershell.exe \\SERVIDOR\NETLOGON\Instalacoes_Win11_Office365.ps1
